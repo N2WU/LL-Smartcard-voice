@@ -8,15 +8,62 @@
 # Navtive
 import logging
 import optparse
+from cryptography.fernet import Fernet
+import numpy as np
 
 # LL Smartcard
 import llsmartcard.apdu as APDU
 from llsmartcard.card import CAC
+import voice_process
 
-def enroll_user():
+#do this once, then delete
+def create_pin():
+    pin = [1,1,1,1,1,1,1,1]
+    np.save('pin.npy', pin)
+
+def store_pin():
+    # key generation
+    key = Fernet.generate_key()
+ 
+    # string the key in a file
+    with open('filekey.key', 'wb') as filekey:
+        filekey.write(key)
+    # opening the key
+    with open('filekey.key', 'rb') as filekey:
+        key = filekey.read()
+
+    # using the generated key
+    fernet = Fernet(key)
+
+    # opening the original file to encrypt
+    with open('pin.npy', 'rb') as file:
+        original = file.read()
+        
+    # encrypting the file
+    encrypted = fernet.encrypt(original)
+
+    # opening the file in write mode and
+    # writing the encrypted data
+    with open('pin.npy', 'wb') as encrypted_file:
+        encrypted_file.write(encrypted)
+
 
 def get_pin():
-    
+    # should decrypt a text file or something with the pin
+    # using the key
+    fernet = Fernet(key)
+
+    # opening the encrypted file
+    with open('pin.npy', 'rb') as enc_file:
+        encrypted = enc_file.read()
+    # decrypting the file
+    decrypted = fernet.decrypt(encrypted)
+    pin = np.load(decrypted)
+    # opening the file in write mode and
+    # writing the decrypted data
+    with open('pin.npy', 'wb') as dec_file:
+        dec_file.write(decrypted)
+    return pin
 
 def process_card(connection, options):
     """
@@ -31,7 +78,9 @@ def process_card(connection, options):
     card = CAC(connection)
 
     # Set this to your PIN.  Please be very careful with this!
-    PIN = get_pin() #[0x37, 0x37, 0x37, 0x37, 0x37, 0x37, 0x37, 0x37]
+    verify = voice_process.main()
+    if verify == True
+        PIN = get_pin() #[0x37, 0x37, 0x37, 0x37, 0x37, 0x37, 0x37, 0x37]
     # Easy enough - change None to a function getPIN(), then getPIN() should roll through everything else
     
     # Print NIST PIV Objects
